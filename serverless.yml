@@ -1,0 +1,31 @@
+service:
+  name: greenlabs-inbound
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs14.x # latest nodejs runtime available in lambda
+  region: ap-northeast-2 # can be adjusted to a region closer to you
+
+functions:
+  hello:
+    handler: index.serviceDBJobHandler
+    events:
+      - http:
+          method: post
+          path: /
+    environment:
+      SERVERLESS_EXPRESS_PLATFORM: aws
+# functions:
+#   job: # the name of our function
+#     memorySize: 512
+#     timeout: 900
+#     handler: index.serviceDBJobHandler
+#     environment:
+#       athenaDBName: inbound_form
+#       athenaS3Bucket: s3://greenlabs-inbound/athena-express
+#       PRISMA_QUERY_ENGINE_BINARY: /tmp/query-engine-rhel-openssl-1.0.x
+#       DATABASE_URL: mysql://greenform:8HxUx4tXLGWIT6HM@typeform-test.cosem4qwowd4.ap-northeast-2.rds.amazonaws.com:3306/inbound_form

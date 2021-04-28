@@ -1,15 +1,24 @@
 {
-  "name": "@ahrefs/bs-aws-lambda",
+  "name": "greenlabs-inbound",
   "sources": [
-    "src"
+    {
+      "dir": "src",
+      "subdirs": true
+    }
   ],
   "package-specs": {
     "module": "commonjs",
     "in-source": true
   },
   "suffix": ".bs.js",
+  "bs-dependencies": [
+    "@ahrefs/bs-aws-lambda"
+  ],
   "bsc-flags": [
     "-bs-super-errors"
   ],
-  "refmt": 3,
+  "warnings": {
+    "error":true
+  },
+  "refmt": 3
 }

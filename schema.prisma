@@ -1,0 +1,25 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model testTable {
+  id               Int      @id @default(autoincrement())
+  submit_data      DateTime @db.Timestamp(0)
+  submission_token String   @db.VarChar(200)
+  form_responses   String   @db.Text
+  response_1       String?  @db.Text
+
+  @@map("test_table")
+}
+
+model form {
+  id         String   @id @db.VarChar(100)
+  title      String   @db.VarChar(2000)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+}
