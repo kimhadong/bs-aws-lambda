@@ -11,6 +11,14 @@ provider:
   region: ap-northeast-2 # can be adjusted to a region closer to you
 
 functions:
+  kakao:
+    handler: index.kakaoHandler
+    events:
+      - http:
+        method: post
+        path: /kakao
+    environment:
+      SERVERLESS_EXPRESS_PLATFORM: aws
   hello:
     handler: index.serviceDBJobHandler
     events:
