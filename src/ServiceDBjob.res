@@ -1,249 +1,101 @@
+open Context
+
 module Lambda = {
   open AwsLambda
 
-  type object = {test: string}
-
-  // choice type 질문의 항목 정보
-  type choice = {
-    id: string,
-    label: string,
-  }
-
-  // 질문 데이터
-  type field = {
-    id: string,
-    title: string,
-    @as("type") field_type: string,
-    @optional ref: string,
-    @optional properties: object,
-    @optional choices: array<choice>,
-  }
-
-  // 폼 데이터
-  type definition = {
-    id: string,
-    title: string,
-    fields: array<field>    
-  }
-
-  // type answer = {
-  //   type: string,
-  //   @optional text: string,
-  //   @optional choice: {label: string},
-  //   @optional choice: {label: string},
-  //   field: {
-  //     "id": "g9hDtlYAWSHG",
-  //     "type": "short_text",
-  //     "ref": "030387c2-e02b-44b3-8d3c-f6991148d130"
-  //   }
-  // }
-
-  // request 요청 데이터
-  type form_response = {
-    form_id: string,
-    token: string,
-    landed_at: string,
-    submitted_at: string,
-    definition: definition,
-  }
-
   module Event = {
     @deriving(abstract)
-    type t = {
-      @optional event_id: string,
-      @optional event_type: string,
-      @optional form_response: form_response,
-    }
+    type t = Typeform.requestData
   }
 
   type handler = handler<Event.t, Global.error, string>
 }
 
-//type prisma = {marketPrice: Prisma.prismaModel}
-type prisma = {
-  testTable: Prisma.prismaModel,
-  forms: Prisma.prismaModel,
-  fields: Prisma.prismaModel,
-  choices: Prisma.prismaModel,
-}
-
-// connection 최소화를 위해 전역변수로 사용
-let prisma = Prisma.prismaClient()
-
-let truncate = date => {
-  let where = {
+let existsForm = (prisma, formId) => {
+  prisma.forms->Prisma.findFirst({
     "where": {
-      "date": date,
-      "productCategoryCodeType": {
-        "in": ["farm", "rice"],
-      },
+      "id": formId,
     },
-  }
-  prisma.testTable->Prisma.deleteMany(where)
+  }) |> Js.Promise.then_(x => x->Js.Nullable.toOption->Belt.Option.isSome->Js.Promise.resolve)
 }
 
-let insertDb = datas => {
-  let insertData = {
-    "data": datas,
-  }
-  prisma.testTable->Prisma.createMany(insertData)
+let findOrCreateForm = (event: Typeform.requestData) => {
+  prisma->existsForm(event.eventId)
+    |> Js.Promise.then_(x => {
+      if x {
+        event->Js.Promise.resolve
+      } else {
+        let createForm = prisma.forms->Prisma.create({
+          "data": {
+            "id": event.formResponse.formId,
+            "title": event.formResponse.definition.title,
+          },
+        })
+        
+        let fieldLength = event.formResponse.definition.fields->Belt.Array.length
+        let idArray = Belt.Array.make(fieldLength, event.formResponse.definition.id)
+        let zippedArray = event.formResponse.definition.fields->Belt.Array.zip(idArray)
+
+        let fields = zippedArray->Belt.Array.map(((x, formId)) =>
+          {
+            "id": x.id,
+            "form_id": formId,
+            "title": x.title,
+            "field_type": x.fieldType,
+          }
+        )
+
+        let createFields = prisma.fields->Prisma.createMany({"data": fields})
+
+        let filteredFields = event.formResponse.definition.fields->Belt.Array.keep(x => {
+          switch x.fieldType {
+            | "multiple_choice" => true
+            | _ => false
+          }
+        })
+
+        let idArray = filteredFields->Belt.Array.map(x => x.id)
+        let zippedArray = filteredFields->Belt.Array.zip(idArray)
+        let choices = zippedArray->Belt.Array.map(((x, fieldId)) => {
+          x.choices->Belt.Array.map(choice => {
+            {
+              "id": choice.id,
+              "field_id": fieldId,
+              "label": choice.label
+            }
+          })
+        })->Belt.Array.concatMany
+        
+        let createChoices = prisma.choices->Prisma.createMany({"data": choices})
+
+        prisma->Prisma.transaction([createForm, createFields, createChoices])
+      }
+    })
 }
 
-// let insertDb = datas => {
-//   let insertData = {
-//     "data": datas,
-//   }
-//   prisma.testTable->Prisma.createMany(insertData)
-// }
+let createAnswer = (event: Typeform.requestData) => {
+  let eventId = event.eventId
 
-let handler: Lambda.handler = (event, context, callback) => {
+  let answers = event.formResponse.answers->Belt.Array.map(x => {
+    {
+      "event_id": eventId,
+      "field_id": x.field.id,
+      "answer_type": x.answerType
+    }
+  })
+  prisma.answers->Prisma.createMany({"data": answers})
+}
+
+let handler: Lambda.handler = (event, context, _callback) => {
   open AwsLambda.Context
-  open Lambda.Event
 
-  // Prisma 를 썼을때 Event Loop 이 끝나지 않는 것으로 보임
+  // 1. find or create form
+  event->findOrCreateForm->Js.log
+
+  // 2. create answers
+  event->createAnswer->Js.log
+
   context->callbackWaitsForEmptyEventLoopSet(false)
 
-  // Js.log(event->form_responseGet)
-  // let test1 = event->form_responseGet
-  // let test2 = event->form_responseGet->Belt.Option.getWithDefault(form_responseGet)
-  // let test2 = event->fieldGet
-  // let testt = switch event->form_responseGet {
-  // | Soum(form_response) => expression
-  // | pattern2 => expression
-  // } 
-  //->Belt.Option.flatMap(x => x.definition)
-  //->Js.log
-  // ->Belt.Option.map(x => {
-  //   Js.log(x)
-  //   x
-  // })->Js.log
-
-
-  let form_id =
-    event->form_responseGet->Belt.Option.map(x => x.definition)->Belt.Option.map(x => x.id)
-  let title =
-    event->form_responseGet->Belt.Option.map(x => x.definition)->Belt.Option.map(x => x.title)
-  let form_fields =
-    event->form_responseGet->Belt.Option.map(x => x.definition)->Belt.Option.map(x => x.fields)->Belt.Option.getWithDefault([])
-
-  form_fields->Belt.Array.map(x => {
-    prisma.fields->Prisma.findUnique({
-      "where": {
-          "title": x.title
-      },
-    })
-    |> Js.Promise.then_(field =>
-      switch field->Js.Nullable.toOption {
-      | Some(field) => field->Js.Promise.resolve
-      | None => {
-
-        prisma.fields->Prisma.create({
-          "data":
-            {
-              "id": x.id,
-              "form_id": form_id->Belt.Option.getWithDefault(""),
-              "title": x.title,
-              "field_type": x.field_type
-            }
-        })
-        |> Js.Promise.then_(_ => {
-          Js.log2("==================", x.field_type)
-          // choice 문항 저장
-          switch x.field_type {
-          | "multiple_choice" | "picture_choice" => {
-                  x.choices->Belt.Array.map(i => {
-                    Js.log2("label", i.label)
-
-                    prisma.choices->Prisma.findUnique({
-                      "where": {
-                          "label": i.label
-                      },
-                    })
-                    |> Js.Promise.then_(choice =>
-                      switch choice->Js.Nullable.toOption {
-                      | Some(choice) => {
-                        Js.log2("dlflfh???", choice)
-                        choice->Js.Promise.resolve
-                      }
-                      | None => {
-                        Js.log("none")
-                        prisma.choices->Prisma.create({
-                          "data":
-                            {
-                              "id": i.id,
-                              "field_id": x.id,
-                              "label": i.label
-                            }
-                        })
-                        |> Js.Promise.then_(_ => {
-                          Js.log("createeee")
-                          callback(Js.Null.empty, "Success")
-                          Js.Promise.resolve()
-                        })
-                        |> Js.Promise.catch(e => {
-                          Js.log(e)
-                          callback(Global.createError("fail")->Js.Null.return, "")
-
-                          Js.Promise.resolve()
-                        })
-                      }
-                      }
-                    )
-
-                  })
-          }
-          | _ => {
-            Js.log("switch __________ ")
-            callback(Js.Null.empty, "Success")
-            [Js.Promise.resolve()]
-          }
-          }->Js.log
-
-          callback(Js.Null.empty, "Success")
-          Js.Promise.resolve()
-        })
-        |> Js.Promise.catch(e => {
-          Js.log(e)
-          callback(Global.createError("fail")->Js.Null.return, "")
-
-          Js.Promise.resolve()
-        })
-
-      }
-      }
-    )
-  })->Js.log
-
-  // Form의 대한 데이터 조회/저장
-  prisma.forms->Prisma.findUnique({
-    "where": {
-      "id": form_id->Belt.Option.getWithDefault(""),
-    },
-  })
-  |> Js.Promise.then_(form =>
-    switch form->Js.Nullable.toOption {
-    | Some(form) => {
-        form->Js.Promise.resolve
-    }
-    | None =>
-      prisma.forms->Prisma.createMany({
-        "data": [
-          {
-            "id": form_id->Belt.Option.getWithDefault(""),
-            "title": title->Belt.Option.getWithDefault(""),
-          },
-        ],
-      })
-      |> Js.Promise.then_(_ => {
-        //form_fields->add_field(form_id)->Js.log
-        callback(Js.Null.empty, "Success")
-        Js.Promise.resolve()
-      })
-      |> Js.Promise.catch(e => {
-        Js.log(e)
-        callback(Global.createError("fail")->Js.Null.return, "")
-        Js.Promise.resolve()
-      })
-    }
-  )
+  "asdf"->Js.log->Js.Promise.resolve
 }

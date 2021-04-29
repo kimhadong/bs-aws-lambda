@@ -3,6 +3,8 @@ external prismaClient: unit => 'prisma = "PrismaClient"
 
 type prismaModel
 
+@send external findFirst: (prismaModel, 'args) => Js.Promise.t<Js.Nullable.t<'ret>> = "findFirst"
+
 @send external createMany: (prismaModel, 'args) => Js.Promise.t<'ret> = "createMany"
 
 @send external create: (prismaModel, 'args) => Js.Promise.t<'ret> = "create"
@@ -12,3 +14,6 @@ type prismaModel
 @send external findUnique: (prismaModel, 'args) => Js.Promise.t<Js.Nullable.t<'ret>> = "findUnique"
 
 @send external findMany: (prismaModel, 'args) => Js.Promise.t<'ret> = "findMany"
+
+@send
+external transaction: (_, array<'prismaQuery>) => Js.Promise.t<'ret> = "$transaction"
