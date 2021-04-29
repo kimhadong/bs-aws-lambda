@@ -1,4 +1,6 @@
 const serviceDBJob = require("./src/ServiceDBJob.bs");
+const kakao = require("./src/Kakao.bs")
+
 const { existsSync } = require('fs');
 
 const binaryPath = '/tmp/query-engine-rhel-openssl-1.0.x';
@@ -14,3 +16,4 @@ if (!existsSync(binaryPath)) {
 }
 
 exports.serviceDBJobHandler = serviceDBJob.handler;
+exports.kakaoHandler = kakao.handler
