@@ -14,7 +14,7 @@ module Lambda = {
     id: string,
     title: string,
     @as("type") field_type: string,
-    @optional ref: string,
+    ref: string,
     @optional properties: object,
     @optional choices: array<choice>,
   }
@@ -118,7 +118,7 @@ let handler: Lambda.handler = (event, context, callback) => {
   //   x
   // })->Js.log
 
-
+  
   let form_id =
     event->form_responseGet->Belt.Option.map(x => x.definition)->Belt.Option.map(x => x.id)
   let title =

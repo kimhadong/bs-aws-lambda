@@ -22,12 +22,10 @@ functions:
     environment:
       SERVERLESS_EXPRESS_PLATFORM: aws
   hello:
-    memorySize: 512
-    timeout: 900
-    handler: index.serviceDBJobHandler    
+    handler: index.serviceDBJobHandler
     events:
       - http:
           method: post
-          path: hello/post
+          path: /
     environment:
       SERVERLESS_EXPRESS_PLATFORM: aws
