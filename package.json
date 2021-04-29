@@ -28,5 +28,17 @@
     "clean": "bsb -clean-world",
     "prisma-generate": "prisma generate"
   },
-  "repository": "https://github.com/kimhadong/bs-aws-lambda.git"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kimhadong/bs-aws-lambda.git"
+  },
+  "description": "`bs-aws-lambda` is a set of types to use when creating [AWS lambda](http://docs.aws.amazon.com/lambda) handlers.",
+  "bugs": {
+    "url": "https://github.com/kimhadong/bs-aws-lambda/issues"
+  },
+  "homepage": "https://github.com/kimhadong/bs-aws-lambda#readme",
+  "directories": {
+    "lib": "lib"
+  },
+  "author": ""
 }
