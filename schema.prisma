@@ -18,8 +18,47 @@ model testTable {
   @@map("test_table")
 }
 
-model form {
+model forms {
   id         String   @id @db.VarChar(100)
   title      String   @db.VarChar(2000)
-  created_at DateTime? @default(now()) @db.DateTime(0)
+  created_at DateTime @default(now()) @db.DateTime(0)
+}
+
+model choices {
+  id         String   @id @db.VarChar(100)
+  field_id   String   @db.VarChar(100)
+  label      String   @db.VarChar(1000)
+  created_at DateTime @default(now()) @db.DateTime(0)
+
+  @@unique(label, name: "label")
+}
+
+model fields {
+  id         String            @id @db.VarChar(100)
+  form_id    String            @db.VarChar(100)
+  title      String            @db.VarChar(2000)
+  field_type fields_field_type @default(etc)
+  created_at DateTime          @default(now()) @db.DateTime(0)
+
+  @@unique(title, name: "title")
+}
+
+enum fields_field_type {
+  etc
+  short_text
+  multiple_choice
+  opinion_scale
+  yes_no
+  number
+  long_text
+  phone_number
+  dropdown
+  email
+  date
+  legal
+  website
+  rating
+  file_upload
+  payment
+  picture_choice
 }
