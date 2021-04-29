@@ -13,6 +13,14 @@ provider:
     role: arn:aws:iam::887960154422:role/market-price-service-lambda-role
 
 functions:
+  kakao:
+    handler: index.kakaoHandler
+    events:
+      - http:
+        method: post
+        path: /kakao
+    environment:
+      SERVERLESS_EXPRESS_PLATFORM: aws
   hello:
     memorySize: 512
     timeout: 900
