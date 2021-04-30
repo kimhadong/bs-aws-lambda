@@ -37,8 +37,8 @@ model test_table {
   response_1       String?  @db.Text
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model answers {
+  id          Int                 @id @default(autoincrement())
   event_id    String              @db.VarChar(100)
   field_id    String              @db.VarChar(100)
   answer_type answers_answer_type @default(etc)
@@ -48,7 +48,6 @@ model answers {
   @@index([answer_type], name: "answers_answer_type_index")
   @@index([event_id], name: "answers_event_id_index")
   @@index([field_id], name: "answers_field_id_index")
-  @@ignore
 }
 
 enum fields_field_type {

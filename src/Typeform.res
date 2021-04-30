@@ -14,6 +14,7 @@ type answer = {
   @optional date: string,
   @optional url: string,
   @optional number: float,
+  @as("phone_number") @optional phoneNumber: string,
   @as("file_url") @optional fileUrl: string,
   @optional payment: payment,
   @optional boolean: bool,

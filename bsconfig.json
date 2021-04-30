@@ -13,7 +13,8 @@
   "suffix": ".bs.js",
   "bs-dependencies": [
     "@ahrefs/bs-aws-lambda",
-    "bs-axios"
+    "bs-axios",
+    "reason-promise"
   ],
   "bsc-flags": [
     "-bs-super-errors"

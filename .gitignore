@@ -9,3 +9,4 @@ yarn-error.log*
 *.bs.js
 .env
 .webpack
+.serverless
