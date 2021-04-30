@@ -11,7 +11,6 @@ module.exports = {
       '.js',
     ]
   },
-  externals: [nodeExternals()],
   plugins: [
     new CopyPlugin({
       patterns: [
