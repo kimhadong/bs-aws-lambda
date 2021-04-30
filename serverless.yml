@@ -12,15 +12,7 @@ provider:
   iam:
     role: arn:aws:iam::887960154422:role/market-price-service-lambda-role
 
-functions:
-  kakao:
-    handler: index.kakaoHandler
-    events:
-      - http:
-        method: post
-        path: /kakao
-    environment:
-      SERVERLESS_EXPRESS_PLATFORM: aws
+functions:  
   hello:
     handler: index.serviceDBJobHandler
     events:

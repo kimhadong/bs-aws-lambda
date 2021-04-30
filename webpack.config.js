@@ -3,8 +3,7 @@ const slsw = require('serverless-webpack');
 const CopyPlugin = require('copy-webpack-plugin');
 const nodeExternals = require('webpack-node-externals')
 
-module.exports = {
-  mode:'development',
+module.exports = {  
   entry: slsw.lib.entries,
   resolve: {
     extensions: [

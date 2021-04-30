@@ -19,8 +19,6 @@ model choices {
   field_id   String   @db.VarChar(100)
   label      String   @db.VarChar(1000)
   created_at DateTime @default(now()) @db.DateTime(0)
-
-  @@unique(label, name: "label")
 }
 
 model fields {
@@ -29,8 +27,14 @@ model fields {
   title      String            @db.VarChar(2000)
   field_type fields_field_type @default(etc)
   created_at DateTime          @default(now()) @db.DateTime(0)
+}
 
-  @@unique(title, name: "title")
+model test_table {
+  id               Int      @id @default(autoincrement())
+  submit_data      DateTime @db.Timestamp(0)
+  submission_token String   @db.VarChar(200)
+  form_responses   String   @db.Text
+  response_1       String?  @db.Text
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
@@ -45,16 +49,6 @@ model answers {
   @@index([event_id], name: "answers_event_id_index")
   @@index([field_id], name: "answers_field_id_index")
   @@ignore
-}
-
-model testTable {
-  id               Int      @id @default(autoincrement())
-  submit_data      DateTime @db.Timestamp(0)
-  submission_token String   @db.VarChar(200)
-  form_responses   String   @db.Text
-  response_1       String?  @db.Text
-
-  @@map("test_table")
 }
 
 enum fields_field_type {

@@ -1,5 +1,4 @@
 const serviceDBJob = require("./src/ServiceDBJob.bs");
-const kakao = require("./src/Kakao.bs")
 
 const { existsSync } = require('fs');
 
@@ -16,4 +15,3 @@ if (!existsSync(binaryPath)) {
 }
 
 exports.serviceDBJobHandler = serviceDBJob.handler;
-exports.kakaoHandler = kakao.handler
